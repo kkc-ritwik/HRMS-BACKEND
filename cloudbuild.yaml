@@ -1,0 +1,52 @@
+steps:
+  - name: gcr.io/cloud-builders/mvn
+    env:
+      - 'SPRING_PROFILES_ACTIVE=${_ENV}'
+    args:
+      - clean
+      - install
+      - '-DskipTests=true'
+    id: Build Maven Project
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/$BRANCH_NAME:${_ENV}'
+      - .
+    id: Build Docker Image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - 'gcr.io/$PROJECT_ID/$BRANCH_NAME:${_ENV}'
+    id: Push Docker Image
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - run
+      - deploy
+      - 'recruitment-backend-${_ENV}'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/$BRANCH_NAME:${_ENV}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - managed
+      - '--allow-unauthenticated'
+      - '--set-env-vars=SPRING_PROFILES_ACTIVE=${_ENV},SECRETKEY=${_SECRETKEY},DEVDBURI=${_DEVDBURI},LOCALDBURI=${_LOCALDBURI},RECRUITMENTEMAILHOST=${_RECRUITMENTEMAILHOST},RECRUITMENTMAILPORT=${_RECRUITMENTMAILPORT},RECRUITMENTEMAILUSERNAME=&{_RECRUITMENTEMAILUSERNAME},RECRUITMENTEMAILPASSWORD=${_RECRUITMENTEMAILPASSWORD},EMAILSMTPAUTH=&{_EMAILSMTPAUTH},EMAILSTARTTLSENABLE=${_EMAILSTARTTLSENABLE}'
+      - '--revision-suffix=$BRANCH_NAME'
+    id: Deploy to Cloud Run
+images:
+  - 'gcr.io/$PROJECT_ID/${BRANCH_NAME}:${_ENV}'
+options:
+  logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _REGION: us-central1
+  _ENV: dev
+  _SECRETKEY: '843567893696976453275974432697R634976R738467TR678T34865R6834R8763T478378637664538745673865783678548735687R3'
+  _LOCALDBURI: 'mongodb+srv://ritwikkam25:ritwikkam25@cluster4.ypgyu1d.mongodb.net/?retryWrites=true&w=majority&appName=Cluster4'
+  _DEVDBURI: 'mongodb+srv://manjudraj1971:Hrb81le02D4O2iUy@cluster1dev.q3d6h.mongodb.net/'
+  _RECRUITMENTEMAILHOST: 'smtp.gmail.com'
+  _RECRUITMENTMAILPORT: '587'
+  _RECRUITMENTEMAILUSERNAME: 'ritwik.kam25@gmail.com'
+  _RECRUITMENTEMAILPASSWORD: 'aiyk cxfe cpiw djqu'
+  _EMAILSMTPAUTH: 'true'
+  _EMAILSTARTTLSENABLE: 'true'
