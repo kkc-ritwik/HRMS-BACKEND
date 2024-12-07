@@ -1,0 +1,57 @@
+steps:
+  - name: gcr.io/cloud-builders/mvn
+    env:
+      - 'SPRING_PROFILES_ACTIVE=${_ENV}'
+    args:
+      - clean
+      - install
+      - '-DskipTests=true'
+    id: Build Maven Project
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/$BRANCH_NAME:${_ENV}'
+      - .
+    id: Build Docker Image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - 'gcr.io/$PROJECT_ID/$BRANCH_NAME:${_ENV}'
+    id: Push Docker Image
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - run
+      - deploy
+      - '$BRANCH_NAME-${_ENV}'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/$BRANCH_NAME:${_ENV}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - managed
+      - '--allow-unauthenticated'
+      - '--set-env-vars=SPRING_PROFILES_ACTIVE=${_ENV},SECRETKEY=${_SECRETKEY},DEVDBURI=${_DEVDBURI},LOCALDBURI=${_LOCALDBURI},
+      LEAVETRACKEREMAILHOST=${_LEAVETRACKEREMAILHOST},LEAVETRACKEREMAILPORT=${_LEAVETRACKEREMAILPORT},
+      LEAVETRACKEREMAILUSERNAME=${_LEAVETRACKEREMAILUSERNAME},LEAVETRACKEREMAILPASSWORD=${_LEAVETRACKEREMAILPASSWORD},
+      LEAVETRACKEREMAILSMTPAUTH=${_LEAVETRACKEREMAILSMTPAUTH},LEAVETRACKEREMAILSTARTTLSENABLE=${_LEAVETRACKEREMAILSTARTTLSENABLE},
+      LEAVETRACKEREMAILSTARTTLSREQUIRED=${_LEAVETRACKEREMAILSTARTTLSREQUIRED},ALLOWEDURLS=${_ALLOWEDURLS}'
+      - '--revision-suffix=$BRANCH_NAME'
+    id: Deploy to Cloud Run
+images:
+  - 'gcr.io/$PROJECT_ID/${BRANCH_NAME}:${_ENV}'
+options:
+  logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _REGION: us-central1
+  _ENV: dev
+  _SECRETKEY: '0qXaXU10h9wGE6TPGdRmUfA1DhuEKtoYnV4JyVc2i2Y='
+  _DEVDBURI: 'mongodb+srv://manjudraj1971:Hrb81le02D4O2iUy@cluster1dev.q3d6h.mongodb.net/?retryWrites=true&w=majority'
+  _LEAVETRACKEREMAILHOST: 'smtp.gmail.com'
+  _LEAVETRACKEREMAILPORT: '587'
+  _LEAVETRACKEREMAILUSERNAME: 'kundan.kam22@gmail.com'
+  _LEAVETRACKEREMAILPASSWORD: 'stbh gchm obuc oaof'
+  _LEAVETRACKEREMAILSMTPAUTH: 'true'
+  _LEAVETRACKEREMAILSTARTTLSENABLE: 'true'
+  _LEAVETRACKEREMAILSTARTTLSREQUIRED: 'true'
+  _ALLOWEDURLS: ""

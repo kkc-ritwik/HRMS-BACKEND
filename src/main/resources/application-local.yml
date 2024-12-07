@@ -1,0 +1,9 @@
+server:
+  port:
+    8080
+Spring:
+  data:
+    mongodb:
+      uri: ${LOCALDBURI}
+      database: Texsmartly-Leave-Tracker
+
